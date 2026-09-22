@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Palyt Kitchen Manager</title>
+    <style>
+        body { font-family: sans-serif; margin: 20px; display: flex; gap: 40px; }
+        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
+        th, td { border: 1px solid #2f266d; padding: 8px; text-align: left; }
+        th { background: #4bc6ff; }
+        .card { flex: 1; border: 1px solid #ccc; padding: 20px; border-radius: 6px; }
+        .unavailable { color: red; font-weight: bold; }
+        .available { color: rgb(35, 136, 35); font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h2>Kitchen Stock</h2>
+        <input type="text" id="searchBox" placeholder="Search ingredients..." onkeyup="filterStock()">
+        <table id="stockTable">
+            <thead>
+                <tr>
+                    <th>Ingredient</th>
+                    <th>Stock</th>
+                    <th>Par Level</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="stockBody"></tbody>
+        </table>
+        
+        <h3>Add Ingredient</h3>
+        <form id="addForm" onsubmit="addIngredient(event)">
+            <input type="text" id="newName" placeholder="Name" required>
+            <input type="number" id="newQty" placeholder="Quantity" step="any" required>
+            <input type="text" id="newUnit" placeholder="Unit (e.g. g, kg)" required>
+            <input type="number" id="newPar" placeholder="Par Level" step="any" required>
+            <button type="submit">Add</button>
+        </form>
+    </div>
+
+    <div class="card">
+        <h2>Menu Availability</h2>
+        <div id="menuContainer"></div>
+    </div>
+
+<script>
+    let stockData = {
+        "paneer": { "quantity": 2.5, "par": 1.0, "unit": "kg" },
+        "cashews": { "quantity": 0.5, "par": 0.2, "unit": "kg" },
+        "bay leaves": { "quantity": 0.1, "par": 0.05, "unit": "kg" }
+    };
+
+    let recipeData = {
+        "Paneer Korma": { "price": 12.0, "ingredients": { "paneer": 180, "cashews": 50 } },
+        "Bay Leaf Rice": { "price": 6.0, "ingredients": { "bay leaves": 5 } }
+    };
+
+    function render() {
+        renderStock();
+        renderMenu();
+    }
+
+    function renderStock() {
+        const tbody = document.getElementById('stockBody');
+        tbody.innerHTML = '';
+        for (let [name, item] of Object.entries(stockData)) {
+            tbody.innerHTML += `
+                <tr>
+                    <td>${name}</td>
+                    <td><input type="number" step="any" value="${item.quantity}" id="qty-${name}" onchange="updateStock('${name}')"> ${item.unit}</td>
+                    <td><input type="number" step="any" value="${item.par}" id="par-${name}" onchange="updateStock('${name}')"></td>
+                    <td><button onclick="deleteIngredient('${name}')">Delete</button></td>
+                </tr>
+            `;
+        }
+    }
+
+    render();
+</script>
+</body>
+</html>
