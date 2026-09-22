@@ -2,47 +2,95 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Palyt Kitchen Manager</title>
+    <title>Palyt Kitchen & Menu Manager</title>
     <style>
-        body { font-family: sans-serif; margin: 20px; display: flex; gap: 40px; }
-        table { border-collapse: collapse; width: 100%; margin-top: 10px; }
-        th, td { border: 1px solid #2f266d; padding: 8px; text-align: left; }
-        th { background: #4bc6ff; }
-        .card { flex: 1; border: 1px solid #ccc; padding: 20px; border-radius: 6px; }
-        .unavailable { color: red; font-weight: bold; }
-        .available { color: rgb(35, 136, 35); font-weight: bold; }
+        :root {
+            --primary: #2b6cb0;
+            --primary-hover: #2c5282;
+            --bg-color: #f7fafc;
+            --card-bg: #ffffff;
+            --text-main: #2d3748;
+            --border-color: #e2e8f0;
+        }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            margin: 0; padding: 30px; 
+            background-color: var(--bg-color); 
+            color: var(--text-main);
+        }
+        h1 { margin-top: 0; color: #1a202c; font-size: 1.8rem; }
+        .dashboard { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 1200px; margin: 0 auto; }
+        @media(max-width: 900px) { .dashboard { grid-template-columns: 1fr; } }
+        
+        .card { 
+            background: var(--card-bg); 
+            border: 1px solid var(--border-color); 
+            padding: 24px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+        }
+        
+        table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+        th, td { border: 1px solid var(--border-color); padding: 10px; text-align: left; font-size: 0.95rem; }
+        th { background: #edf2f7; color: #4a5568; }
+        
+        input[type="text"], input[type="number"] {
+            padding: 6px 10px; border: 1px solid var(--border-color); border-radius: 4px; width: 90px;
+        }
+        #searchBox { width: 100%; box-sizing: border-box; margin-bottom: 10px; padding: 8px; }
+        
+        button { 
+            background: var(--primary); color: white; border: none; padding: 6px 12px; 
+            border-radius: 4px; cursor: pointer; font-size: 0.9rem; transition: background 0.2s;
+        }
+        button:hover { background: var(--primary-hover); }
+        button:disabled { background: #cbd5e0; cursor: not-allowed; }
+        
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+        .form-grid input { width: 100%; box-sizing: border-box; }
+        .form-grid button { grid-column: span 2; padding: 10px; }
+        
+        .unavailable { color: #e53e3e; background: #fff5f5; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; }
+        .available { color: #38a169; background: #f0fff4; padding: 4px 8px; border-radius: 4px; font-size: 0.85rem; }
+        .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; margin-bottom: 10px; background: #fff; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <h2>Kitchen Stock</h2>
-        <input type="text" id="searchBox" placeholder="Search ingredients..." onkeyup="filterStock()">
-        <table id="stockTable">
-            <thead>
-                <tr>
-                    <th>Ingredient</th>
-                    <th>Stock</th>
-                    <th>Par Level</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="stockBody"></tbody>
-        </table>
-        
-        <h3>Add Ingredient</h3>
-        <form id="addForm" onsubmit="addIngredient(event)">
-            <input type="text" id="newName" placeholder="Name" required>
-            <input type="number" id="newQty" placeholder="Quantity" step="any" required>
-            <input type="text" id="newUnit" placeholder="Unit (e.g. g, kg)" required>
-            <input type="number" id="newPar" placeholder="Par Level" step="any" required>
-            <button type="submit">Add</button>
-        </form>
+    <div style="max-width: 1200px; margin: 0 auto 20px auto;">
+        <h1>Palyt Kitchen Manager</h1>
     </div>
 
-    <div class="card">
-        <h2>Menu Availability</h2>
-        <div id="menuContainer"></div>
+    <div class="dashboard">
+        <div class="card">
+            <h2>Kitchen Stock</h2>
+            <input type="text" id="searchBox" placeholder="Search ingredients..." onkeyup="filterStock()">
+            <table id="stockTable">
+                <thead>
+                    <tr>
+                        <th>Ingredient</th>
+                        <th>Stock & Unit</th>
+                        <th>Par Level</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="stockBody"></tbody>
+            </table>
+            
+            <h3 style="margin-top: 25px;">Add Ingredient</h3>
+            <form id="addForm" onsubmit="addIngredient(event)" class="form-grid">
+                <input type="text" id="newName" placeholder="Name" required>
+                <input type="number" id="newQty" placeholder="Quantity" step="any" required>
+                <input type="text" id="newUnit" placeholder="Unit (kg, g)" required>
+                <input type="number" id="newPar" placeholder="Par Level" step="any" required>
+                <button type="submit">Add to Stock</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h2>Diner Menu View</h2>
+            <div id="menuContainer" style="margin-top: 15px;"></div>
+        </div>
     </div>
 
 <script>
@@ -53,8 +101,8 @@
     };
 
     let recipeData = {
-        "Paneer Korma": { "price": 12.0, "ingredients": { "paneer": 180, "cashews": 50 } },
-        "Bay Leaf Rice": { "price": 6.0, "ingredients": { "bay leaves": 5 } }
+        "Paneer Korma": { "price": 450.0, "ingredients": { "paneer": 180, "cashews": 50 } },
+        "Bay Leaf Rice": { "price": 250.0, "ingredients": { "bay leaves": 5 } }
     };
 
     function render() {
@@ -68,14 +116,15 @@
         for (let [name, item] of Object.entries(stockData)) {
             tbody.innerHTML += `
                 <tr>
-                    <td>${name}</td>
+                    <td><strong>${name}</strong></td>
                     <td><input type="number" step="any" value="${item.quantity}" id="qty-${name}" onchange="updateStock('${name}')"> ${item.unit}</td>
                     <td><input type="number" step="any" value="${item.par}" id="par-${name}" onchange="updateStock('${name}')"></td>
-                    <td><button onclick="deleteIngredient('${name}')">Delete</button></td>
+                    <td><button style="background: #e53e3e;" onclick="deleteIngredient('${name}')">Delete</button></td>
                 </tr>
             `;
         }
     }
+
     function updateStock(name) {
         stockData[name].quantity = parseFloat(document.getElementById(`qty-${name}`).value);
         stockData[name].par = parseFloat(document.getElementById(`par-${name}`).value);
@@ -85,12 +134,8 @@
     function checkAvailability(recipeIngredients) {
         for (let [ing, needed] of Object.entries(recipeIngredients)) {
             if (!stockData[ing]) return false;
-            // Handle unit mismatch: assuming stock is in kg/liters (base units) and recipes in grams/ml if needed, 
-            // OR check how your JSON formats them. Let's assume standard unit multipliers:
             let availableQty = stockData[ing].quantity;
             let parLevel = stockData[ing].par;
-            
-            // If stock is kg and recipe uses grams, convert needed to kg:
             let scaledNeeded = (stockData[ing].unit === 'kg' && needed > 10) ? needed / 1000 : needed;
 
             if (availableQty <= parLevel || availableQty < scaledNeeded) {
@@ -106,12 +151,17 @@
         for (let [dish, data] of Object.entries(recipeData)) {
             let isAvailable = checkAvailability(data.ingredients);
             container.innerHTML += `
-                <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #eee;">
-                    <strong>${dish}</strong> - $${data.price} 
-                    <span class="${isAvailable ? 'available' : 'unavailable'}">
-                        (${isAvailable ? 'Available' : 'Unavailable'})
-                    </span><br>
-                    <button ${!isAvailable ? 'disabled' : ''} onclick="orderDish('${dish}')">Order 1 Portion</button>
+                <div class="menu-item">
+                    <div>
+                        <strong>${dish}</strong><br>
+                        <span style="color: #4a5568;">₹${data.price.toFixed(2)}</span>
+                    </div>
+                    <div style="text-align: right;">
+                        <span class="${isAvailable ? 'available' : 'unavailable'}">
+                            ${isAvailable ? 'Available' : 'Unavailable'}
+                        </span><br><br>
+                        <button ${!isAvailable ? 'disabled' : ''} onclick="orderDish('${dish}')">Order 1 Portion</button>
+                    </div>
                 </div>
             `;
         }
@@ -125,6 +175,44 @@
         }
         render();
     } 
+
+    function addIngredient(event) {
+        event.preventDefault();
+        let name = document.getElementById('newName').value.trim().toLowerCase();
+        let qty = parseFloat(document.getElementById('newQty').value);
+        let unit = document.getElementById('newUnit').value.trim();
+        let par = parseFloat(document.getElementById('newPar').value);
+
+        if (!name || isNaN(qty) || isNaN(par) || qty < 0 || par < 0) {
+            alert("Please enter a valid name and positive numbers.");
+            return;
+        }
+
+        stockData[name] = { quantity: qty, par: par, unit: unit };
+        document.getElementById('addForm').reset();
+        render();
+    }
+
+    function deleteIngredient(name) {
+        let usedIn = Object.keys(recipeData).filter(dish => recipeData[dish].ingredients[name]);
+        if (usedIn.length > 0) {
+            alert(`Cannot delete '${name}': it is used by active recipes (${usedIn.join(', ')}).`);
+            return;
+        }
+        delete stockData[name];
+        render();
+    }
+
+    function filterStock() {
+        let query = document.getElementById('searchBox').value.toLowerCase();
+        let rows = document.getElementById('stockTable').getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+        for (let row of rows) {
+            let text = row.cells[0].innerText.toLowerCase();
+            row.style.display = text.includes(query) ? '' : 'none';
+        }
+    }
+
+    render();
 </script>
 </body>
 </html>
