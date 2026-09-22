@@ -76,8 +76,55 @@
             `;
         }
     }
+    function updateStock(name) {
+        stockData[name].quantity = parseFloat(document.getElementById(`qty-${name}`).value);
+        stockData[name].par = parseFloat(document.getElementById(`par-${name}`).value);
+        renderMenu();
+    }
 
-    render();
+    function checkAvailability(recipeIngredients) {
+        for (let [ing, needed] of Object.entries(recipeIngredients)) {
+            if (!stockData[ing]) return false;
+            // Handle unit mismatch: assuming stock is in kg/liters (base units) and recipes in grams/ml if needed, 
+            // OR check how your JSON formats them. Let's assume standard unit multipliers:
+            let availableQty = stockData[ing].quantity;
+            let parLevel = stockData[ing].par;
+            
+            // If stock is kg and recipe uses grams, convert needed to kg:
+            let scaledNeeded = (stockData[ing].unit === 'kg' && needed > 10) ? needed / 1000 : needed;
+
+            if (availableQty <= parLevel || availableQty < scaledNeeded) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    function renderMenu() {
+        const container = document.getElementById('menuContainer');
+        container.innerHTML = '';
+        for (let [dish, data] of Object.entries(recipeData)) {
+            let isAvailable = checkAvailability(data.ingredients);
+            container.innerHTML += `
+                <div style="margin-bottom: 15px; padding: 10px; border: 1px solid #eee;">
+                    <strong>${dish}</strong> - $${data.price} 
+                    <span class="${isAvailable ? 'available' : 'unavailable'}">
+                        (${isAvailable ? 'Available' : 'Unavailable'})
+                    </span><br>
+                    <button ${!isAvailable ? 'disabled' : ''} onclick="orderDish('${dish}')">Order 1 Portion</button>
+                </div>
+            `;
+        }
+    }
+
+    function orderDish(dish) {
+        let recipe = recipeData[dish].ingredients;
+        for (let [ing, amount] of Object.entries(recipe)) {
+            let deduction = (stockData[ing].unit === 'kg' && amount > 10) ? amount / 1000 : amount;
+            stockData[ing].quantity -= deduction;
+        }
+        render();
+    } 
 </script>
 </body>
 </html>
